@@ -1,10 +1,12 @@
-# 7-OpenLANE Directory structure in detail
+# 7 - OpenLANE Directory Structure in Detail
 
-## Exploration
+## Environment Exploration
 
-### Openlane Directory
+### OpenLANE Directory Structure
 
-````bash
+The main OpenLANE directory contains various components and tools:
+
+```bash
 beaver@openlanevm:~/Desktop/work/tools/openlane_working_dir/openlane$ ls
 AUTHORS.md       docs        install          regression_results     tests
 configuration    empty       Jenkinsfile      requirements_dev.txt   venv
@@ -13,25 +15,58 @@ default.nix      flake.lock  LICENSE          requirements.txt
 dependencies     flake.nix   Makefile         run_designs.py
 designs          flow.tcl    Makefile.backup  runs
 docker           gui.py      README.md        scripts
-beaver@openlanevm:~/Desktop/work/tools/openlane_working_dir/openlane$ ```
-````
+```
 
-### PDK
+### Key Directory Components:
 
-#### Formats for tools
+- **designs/**: Contains pre-configured design examples
+- **flow.tcl**: Main OpenLANE flow script
+- **scripts/**: Supporting scripts for the flow
+
+### PDK (Process Design Kit) Structure
+
+#### Tool-Specific Format Organization
+
+The PDK is organized by tool requirements:
 
 ```bash
 beaver@openlanevm:~/Desktop/work/tools/openlane_working_dir/pdks/sky130A$ ls
 libs.ref  libs.tech  SOURCES
+```
+
+#### Technology Libraries (libs.tech)
+
+Tool-specific technology files:
+
+```bash
 beaver@openlanevm:~/Desktop/work/tools/openlane_working_dir/pdks/sky130A$ ls libs.tech/
 irsim  klayout  magic  netgen  ngspice  openlane  qflow  xcircuit  xschem
+```
+
+#### Reference Libraries (libs.ref)
+
+Standard cell and I/O libraries in various formats:
+
+```bash
 beaver@openlanevm:~/Desktop/work/tools/openlane_working_dir/pdks/sky130A/libs.ref/sky130_fd_sc_hd$ ls
 cdl  doc  gds  lef  lib  mag  maglef  spice  techlef  verilog
 ```
 
-### Opening the Openlane ENV
+### File Format Descriptions:
 
-Navigating to the openlane directory, running `sudo make mount` opens the docker container.
+- **cdl**: Circuit Description Language files
+- **gds**: GDSII layout files
+- **lef**: Library Exchange Format files
+- **lib**: Liberty timing library files
+- **mag**: Magic layout files
+- **spice**: SPICE netlists
+- **verilog**: Verilog models
+
+## OpenLANE Environment Setup
+
+### Launching the OpenLANE Container
+
+Navigate to the OpenLANE directory and launch the Docker container:
 
 ```bash
 beaver@openlanevm:~/Desktop/work/tools/openlane_working_dir/openlane$ sudo make mount
@@ -41,9 +76,18 @@ cd /home/beaver/Desktop/work/tools/openlane_working_dir/openlane && \
 OpenLane Container:/home/beaver/Desktop/work/tools/openlane_working_dir/openlane%
 ```
 
-### Designs
+### Docker Command Breakdown:
 
-Openlane bundles separate preconfigured designs:
+- **--rm**: Remove container after exit
+- **-v**: Mount volumes for file access
+- **-e PDK_ROOT**: Set PDK root environment variable
+- **-e PDK=sky130A**: Specify SKY130A PDK
+- **--user 0:0**: Run as root user
+- **-ti**: Interactive terminal mode
+
+### Available Pre-configured Designs
+
+OpenLANE includes multiple ready-to-use design examples:
 
 ```bash
 OpenLane Container:/home/beaver/Desktop/work/tools/openlane_working_dir/openlane% ls designs/ci
@@ -55,13 +99,18 @@ aes_core		 io_placer		      s44	     wbqspiflash
 aes_user_project_wrapper  manual_macro_placement_test  salsa20	     xtea
 ```
 
-## Flow Design Preparation
+### Notable Designs:
 
-### Opening the Flow ENV
+- **picorv32a**: RISC-V processor implementation
+- **aes**: Advanced Encryption Standard design
+- **usb**: USB controller design
+- **gcd**: Greatest Common Divisor calculator
 
-The flow environment should be launched within the Openlane ENV.
+## Design Flow Preparation
 
-It can be launched with:
+### Launching the Interactive Flow Environment
+
+The flow environment must be launched within the OpenLANE container:
 
 ```bash
 OpenLane Container:/home/beaver/Desktop/work/tools/openlane_working_dir/openlane% ./flow.tcl -interactive
@@ -72,11 +121,18 @@ Available under the Apache License, version 2.0. See the LICENSE file for more d
 %
 ```
 
-### Initialize openlane/load designs
+### Initialize OpenLANE and Load Design
+
+#### Step 1: Load OpenLANE Package
 
 ```bash
 % package require openlane
 0.9
+```
+
+#### Step 2: Prepare Design Configuration
+
+```bash
 % prep -design designs/ci/picorv32a
 [INFO]: Using configuration in 'designs/ci/picorv32a/config.json'...
 [INFO]: PDK Root: /root/.volare
@@ -93,15 +149,24 @@ Available under the Apache License, version 2.0. See the LICENSE file for more d
 %
 ```
 
-This does the following:
+### What the `prep` Command Does:
 
-- Create a new "RUN", located in `/openlane/designs/ci/picorv32a/runs`
+- **Creates a new RUN directory**: Located at `/openlane/designs/ci/picorv32a/runs/`
+- **Sets up the environment**: Prepares all necessary files for the OpenLANE flow
+- **Configures libraries**: Sets up standard cell libraries for different process corners
+- **Initializes logging**: Creates directory structure for logs and results
 
-- Sets up the env for openlane flow (synthesis, floorplanning, etc)
+### Process Corners Explained:
 
-### Synthesis
+- **nom corner**: Nominal process conditions
+- **min corner**: Minimum process variation (fast corner)
+- **max corner**: Maximum process variation (slow corner)
 
-Run synthesis with
+## RTL Synthesis Execution
+
+### Running Synthesis
+
+Execute the synthesis step to convert RTL to gate-level netlist:
 
 ```bash
 % run_synthesis
@@ -111,9 +176,16 @@ Run synthesis with
 [INFO]: Running Single-Corner Static Timing Analysis (log: designs/ci/picorv32a/runs/RUN_2025.07.17_18.16.46/logs/synthesis/2-sta.log)...
 ```
 
-This converts the RTL VHDL into a gate-level netlist of standard cells.
+### Synthesis Process:
 
-We can preview the synthesis output with
+- **Step 1**: Converts RTL (Verilog/VHDL) into gate-level netlist using standard cells
+- **Step 2**: Performs static timing analysis to check timing constraints
+
+### Reviewing Synthesis Results
+
+#### View Synthesis Statistics
+
+Check the final synthesis statistics:
 
 ```bash
 OpenLane Container:/home/beaver/Desktop/work/tools/openlane_working_dir/openlane% tail designs/ci/picorv32a/runs/RUN_2025.07.17_18.16.46/logs/synthesis/1-synthesis.log -n 20
@@ -139,9 +211,19 @@ Yosys 0.38 (git sha1 543faed9c8c, clang++ 16.0.6 -fPIC -Os)
 Time spent: 69% 2x abc (6 sec), 7% 41x opt_expr (0 sec), ...
 ```
 
-### Calculating flip flop ratio
+### Key Information from Output:
 
-We can find the flip flop count looking for the `dfxtp` line.
+- **Cell counts**: Number of each standard cell type used
+- **Chip area**: Total area in square microns (98792.249600)
+- **Tool information**: Yosys version and runtime statistics
+
+## Design Metrics Calculation
+
+### Calculating Flip-Flop Ratio
+
+#### Find Flip-Flop Count
+
+Search for D flip-flop cells in the synthesis log:
 
 ```bash
 OpenLane Container:/home/beaver/Desktop/work/tools/openlane_working_dir/openlane% cat designs/ci/picorv32a/runs/RUN_2025.07.17_18.16.46/logs/synthesis/1-synthesis.log | grep "dfxtp"
@@ -154,7 +236,9 @@ ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxtp_4".
      sky130_fd_sc_hd__dfxtp_2     1596
 ```
 
-We can see the number of cells looking for `Number of cells:`, searching with vim
+#### Find Total Cell Count
+
+Search for the total number of cells:
 
 ```bash
 42.2. Analyzing design hierarchy..
@@ -188,5 +272,21 @@ Removed 0 unused modules.
      $_SDFFE_PN0N_                   1
      $_SDFFE_PN0P_                 153
      $_SDFFE_PP0P_                   1
-/Number of cells:
+```
+
+### Calculation Example:
+
+- **Flip-flops**: 1596 (dfxtp_2 cells)
+- **Total cells**: 8116
+- **Flip-flop ratio**: 1596/8116 = 0.1966 = 19.66%
+
+### Other Statistics Available:
+
+- **Number of wires**: 6301 interconnections
+- **Wire bits**: 8874 total signal bits
+- **Public wires**: 179 I/O signals
+- **Memory usage**: 0
+
+```
+
 ```
