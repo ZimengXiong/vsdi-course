@@ -26,8 +26,8 @@ RISC-V is a open source, reduced instruction set that is designed to be accessib
 
 Languages, like C++, are compiled into assembly. The assembler then generates machine code, based on the ISA. The result is the executable is ISA dependent, as it was compiled for a specific architecture.
 
-![](image-3.png)
-![](image-4.png)
+![](image-18.png)
+![](image-19.png)
 
 # 3- Introduction to all components of open-source digital asic design
 
